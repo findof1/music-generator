@@ -1,56 +1,79 @@
-const VF = Vex.Flow;
+import Vex from "https://esm.sh/vexflow@4.0.1-beta.2";
+import {
+  getKeys,
+  getNoteOptionsByDifficulty,
+  pushNote,
+  pushRandomQ,
+  pushRandom8th,
+  push2Random8th,
+  pushRandom16th,
+  push2Random16th,
+  push4Random16th,
+  pushSame8th,
+  pushSame16th,
+  canPushQ,
+  canPush8th,
+  canPush16th
+} from "./musicUtils.js";
+import { stopNotes } from "./audioUtils.js";
+
+export const VF = Vex.Flow;
 const container = document.getElementById("boo");
 const pageWidth = 1700;
 const staveWidth = 350;
 const margin = 10;
 const lineSpacing = 120;
-let allNotes = [];
+export const maximumNoteSubdivision = 4; //16th notes
+export let allNotes = [];
 
-let renderer = new VF.Renderer(container, VF.Renderer.Backends.SVG);
-renderer.resize(1000, 500);
-let context = renderer.getContext();
+let renderer;
+let context;
+initVF();
 
-function drawNotes() {
-  stopNotes();
-  allNotes = [];
-  container.innerHTML = "";
+function initVF() {
   renderer = new VF.Renderer(container, VF.Renderer.Backends.SVG);
   renderer.resize(pageWidth, 6000);
   context = renderer.getContext();
-  let key = document.getElementById("keySelector").value;
+}
 
+function getUserInputs() {
+  let keySignature = document.getElementById("keySelector").value;
   const measrues = parseInt(document.getElementById("length").value);
   const difficulty = parseInt(document.getElementById("difficulty").value);
-  const rangeDifficulty = parseInt(
-    document.getElementById("rangeDifficulty").value
-  );
-
-  let lastKey = -1;
+  const rangeDifficulty = parseInt(document.getElementById("rangeDifficulty").value);
   const maxJump = parseInt(document.getElementById("maxJump").value);
+  return {
+    keySignature,
+    measrues,
+    difficulty,
+    rangeDifficulty,
+    maxJump,
+  };
+}
 
+export function drawNotes() {
+  stopNotes();
+
+  allNotes = [];
+  container.innerHTML = "";
+  initVF();
+
+  let { keySignature, measrues, difficulty, rangeDifficulty, maxJump } = getUserInputs();
+  let lastKey = -1;
   let keys = getKeys(rangeDifficulty);
 
   let prevStave = null;
   let x = margin;
   let y = 40;
   let firstStave = true;
-  for (let i = 0; i < measrues; i++) {
-    let retVal = generateMeasure(
-      x,
-      y,
-      difficulty,
-      4,
-      keys,
-      firstStave,
-      prevStave == null,
-      key,
-      maxJump,
-      lastKey
-    );
-    firstStave = false;
 
+  for (let i = 0; i < measrues; i++) {
+    let retVal = generateMeasure(x, y, difficulty, 4, keys, firstStave, prevStave == null, keySignature, maxJump, lastKey);
     prevStave = retVal.stave;
     lastKey = retVal.lastKey;
+    
+    firstStave = false;
+
 
     x += staveWidth;
 
@@ -61,193 +84,62 @@ function drawNotes() {
     }
   }
 }
+window.drawNotes = drawNotes;
 
-function generateMeasure(
-  x,
-  y,
-  difficulty,
-  length,
-  keys,
-  firstMeasure,
-  showTime,
-  key,
-  maxJump,
-  lastKey
-) {
-  const notes = [];
-  const maximumNoteSubdivision = 4; //16th notes
-
-  let availableNoteLengths;
-  let availableNoteValues; //value of notes based off of how many 16th notes are in it
-
-  if (difficulty == 1) {
-    availableNoteLengths = ["w", "h", "w", "h", "wr", "hr"];
-    availableNoteValues = [16, 8, 16, 8, 16, 8];
-  } else if (difficulty == 2) {
-    availableNoteLengths = ["w", "h", "q", "w", "h", "q", "wr", "hr", "qr"];
-    availableNoteValues = [16, 8, 4, 16, 8, 4, 16, 8, 4];
-  } else if (difficulty == 3) {
-    availableNoteLengths = [
-      "w",
-      "h",
-      "q",
-      "8",
-      "w",
-      "h",
-      "q",
-      "8",
-      "wr",
-      "hr",
-      "qr",
-    ];
-    availableNoteValues = [16, 8, 4, 2, 16, 8, 4, 2, 16, 8, 4];
-  } else if (difficulty == 4) {
-    availableNoteLengths = [
-      "w",
-      "h",
-      "q",
-      "8",
-      "w",
-      "h",
-      "q",
-      "8",
-      "wr",
-      "hr",
-      "qr",
-      "8r",
-    ];
-    availableNoteValues = [16, 8, 4, 2, 16, 8, 4, 2, 16, 8, 4, 2];
-  } else if (difficulty == 5) {
-    availableNoteLengths = [
-      "w",
-      "h",
-      "q",
-      "8",
-      "w",
-      "h",
-      "q",
-      "8",
-      "wr",
-      "hr",
-      "qr",
-      "8r",
-    ];
-    availableNoteValues = [16, 8, 4, 2, 16, 8, 4, 2, 16, 8, 4, 2];
-  } else if (difficulty == 6) {
-    availableNoteLengths = [
-      "w",
-      "h",
-      "q",
-      "8",
-      "16",
-      "w",
-      "h",
-      "q",
-      "8",
-      "16",
-      "wr",
-      "hr",
-      "qr",
-      "8r",
-    ];
-    availableNoteValues = [16, 8, 4, 2, 1, 16, 8, 4, 2, 1, 16, 8, 4, 2];
-  } else if (difficulty >= 7) {
-    availableNoteLengths = [
-      "w",
-      "h",
-      "q",
-      "8",
-      "16",
-      "wr",
-      "hr",
-      "qr",
-      "8r",
-      "16r",
-    ];
-    availableNoteValues = [16, 8, 4, 2, 1, 16, 8, 4, 2, 1];
+function pickNoteLengthValue(availableNoteLengths, availableNoteValues, remaining) {
+  for (let i = 0; i < availableNoteValues.length; i++) {
+    if (availableNoteValues[i] <= remaining) {
+      return { length: availableNoteLengths[i], value: availableNoteValues[i] };
+    }
   }
+  return null;
+}
+
+function generateMeasure(x, y, difficulty, measureLength, keys, firstMeasure, showTime, keySignature, maxJump, lastKey) {
+  const notes = [];
+  const { lengths: availableNoteLengths, values: availableNoteValues } = getNoteOptionsByDifficulty(difficulty);
 
   let counter = 0;
   while (true) {
-    const randNoteLength = Math.floor(
-      Math.random() * availableNoteLengths.length
-    );
+    const remaining = measureLength * maximumNoteSubdivision - counter;
+    if (remaining <= 0) break;
 
-    let noteLength = availableNoteLengths[randNoteLength];
-    let noteValue = availableNoteValues[randNoteLength];
+    const randIndex = Math.floor(Math.random() * availableNoteLengths.length);
+    let noteLength = availableNoteLengths[randIndex];
+    let noteValue = availableNoteValues[randIndex];
 
-    if (counter + noteValue > length * maximumNoteSubdivision) {
-      let foundSmaller = false;
-      for (let i = 0; i < availableNoteValues.length; i++) {
-        if (
-          availableNoteValues[i] <=
-          length * maximumNoteSubdivision - counter
-        ) {
-          noteLength = availableNoteLengths[i];
-          noteValue = availableNoteValues[i];
-          foundSmaller = true;
-          break;
-        }
-      }
-      if (!foundSmaller) break;
+    if (noteValue > remaining) {
+      const pick = pickNoteLengthValue(availableNoteLengths, availableNoteValues, remaining);
+      if (!pick) break;
+      noteLength = pick.length;
+      noteValue = pick.value;
     }
 
-    if (
-      noteValue == 1 &&
-      (counter + noteValue) % (maximumNoteSubdivision / 2) != 0
-    ) {
-      let retVal = handleSixteenthNoteRuns(
-        notes,
-        keys,
-        difficulty,
-        counter,
-        maximumNoteSubdivision,
-        length,
-        lastKey,
-        maxJump
-      );
+    if (noteValue == 1) {
+      let retVal = handleSixteenthNoteRuns(notes, keys, difficulty, counter, measureLength, lastKey, maxJump);
       counter = retVal.counter;
       lastKey = retVal.lastKey;
       continue;
     }
 
-    if (
-      noteValue == 2 &&
-      (counter + noteValue) % (maximumNoteSubdivision / 2) == 0
-    ) {
-      console.log("e");
-      let retVal = handleSyncopation(
-        notes,
-        keys,
-        difficulty,
-        counter,
-        maximumNoteSubdivision,
-        length,
-        lastKey,
-        maxJump
-      );
-
+    if (noteValue == 2) {
+      let retVal = handleSyncopation(notes, keys, difficulty, counter, measureLength, lastKey, maxJump);
       counter = retVal.counter;
       lastKey = retVal.lastKey;
-
       continue;
     }
 
     let keyIndex = getKeyIndex(lastKey, keys, maxJump);
     let key = keys[keyIndex];
     lastKey = keyIndex;
-    if (noteLength.includes("r")) {
-      key = "b/4";
-    }
-    notes.push(new VF.StaveNote({ keys: [key], duration: noteLength }));
+    pushNote(notes, key, noteLength, difficulty);
     counter += noteValue;
   }
-  console.log(notes);
-  let stave = drawMeasure(x, y, notes, firstMeasure, key, showTime, []);
+  let stave = drawMeasure(x, y, notes, firstMeasure, keySignature, showTime, []);
   return { stave, lastKey };
 }
 
-function getKeyIndex(lastKey, keys, maxJump) {
+export function getKeyIndex(lastKey, keys, maxJump) {
   let keyIndex = Math.floor(Math.random() * keys.length);
   while (lastKey != -1 && Math.abs(keyIndex - lastKey) > maxJump) {
     keyIndex = Math.floor(Math.random() * keys.length);
@@ -255,234 +147,118 @@ function getKeyIndex(lastKey, keys, maxJump) {
   return keyIndex;
 }
 
-function handleSyncopation(
-  notes,
-  keys,
-  difficulty,
-  counter,
-  maximumNoteSubdivision,
-  length,
-  lastKey,
-  maxJump
-) {
+function handleSyncopation(notes, keys, difficulty, counter, measureLength, lastKey, maxJump) {
   if (difficulty >= 5) {
-    let rand = Math.floor(Math.random() * 4);
-
-    if (rand == 1 && difficulty >= 7) {
-      let keyIndex = getKeyIndex(lastKey, keys, maxJump);
-      let key = keys[keyIndex];
-      lastKey = keyIndex;
-
-      let randRest = Math.floor(Math.random() * 8);
-      notes.push(
-        new VF.StaveNote({
-          keys: [randRest == 0 ? "b/4" : key],
-          duration: randRest == 0 ? "8r" : "8",
-        })
-      );
-      counter += 2;
-      return { counter, lastKey };
-    }
-
-    if (rand == 0) {
-      let keyIndex = getKeyIndex(lastKey, keys, maxJump);
-      let key = keys[keyIndex];
-      lastKey = keyIndex;
-      let randRest = Math.floor(Math.random() * 8);
-      notes.push(
-        new VF.StaveNote({
-          keys: [randRest == 0 ? "b/4" : key],
-          duration: randRest == 0 ? "8r" : "8",
-        })
-      );
-      counter += 2;
-      if (counter + 4 > length * maximumNoteSubdivision) {
-        return { counter, lastKey };
-      }
-
-      keyIndex = getKeyIndex(lastKey, keys, maxJump);
-      key = keys[keyIndex];
-      lastKey = keyIndex;
-      randRest = Math.floor(Math.random() * 8);
-      notes.push(
-        new VF.StaveNote({
-          keys: [randRest == 0 ? "b/4" : key],
-          duration: randRest == 0 ? "qr" : "q",
-        })
-      );
-      counter += 4;
-      if (counter + 2 > length * maximumNoteSubdivision) {
-        return { counter, lastKey };
-      }
-      keyIndex = getKeyIndex(lastKey, keys, maxJump);
-      key = keys[keyIndex];
-      lastKey = keyIndex;
-      randRest = Math.floor(Math.random() * 8);
-      notes.push(
-        new VF.StaveNote({
-          keys: [randRest == 0 ? "b/4" : key],
-          duration: randRest == 0 ? "8r" : "8",
-        })
-      );
-      counter += 2;
-    } else {
-      let keyIndex = getKeyIndex(lastKey, keys, maxJump);
-      let key = keys[keyIndex];
-      lastKey = keyIndex;
-      let randRest = Math.floor(Math.random() * 8);
-      notes.push(
-        new VF.StaveNote({
-          keys: [randRest == 0 ? "b/4" : key],
-          duration: randRest == 0 ? "8r" : "8",
-        })
-      );
-      counter += 2;
-      if (counter + 2 > length * maximumNoteSubdivision) {
-        return { counter, lastKey };
-      }
-
-      keyIndex = getKeyIndex(lastKey, keys, maxJump);
-      key = keys[keyIndex];
-      lastKey = keyIndex;
-      randRest = Math.floor(Math.random() * 8);
-      notes.push(
-        new VF.StaveNote({
-          keys: [randRest == 0 ? "b/4" : key],
-          duration: randRest == 0 ? "8r" : "8",
-        })
-      );
-      counter += 2;
-    }
-  } else if (difficulty >= 4) {
-    let keyIndex = getKeyIndex(lastKey, keys, maxJump);
-    let key = keys[keyIndex];
-    lastKey = keyIndex;
-    let randRest = Math.floor(Math.random() * 8);
-    notes.push(
-      new VF.StaveNote({
-        keys: [randRest == 0 ? "b/4" : key],
-        duration: randRest == 0 ? "8r" : "8",
-      })
-    );
-    counter += 2;
-
-    if (counter + 2 > length * maximumNoteSubdivision) {
-      return { counter, lastKey };
-    }
-
-    keyIndex = getKeyIndex(lastKey, keys, maxJump);
-    key = keys[keyIndex];
-    lastKey = keyIndex;
-    randRest = Math.floor(Math.random() * 8);
-    notes.push(
-      new VF.StaveNote({
-        keys: [randRest == 0 ? "b/4" : key],
-        duration: randRest == 0 ? "8r" : "8",
-      })
-    );
-    counter += 2;
-  } else {
-    let keyIndex = getKeyIndex(lastKey, keys, maxJump);
-    let key = keys[keyIndex];
-    lastKey = keyIndex;
-
-    let randRest = Math.floor(Math.random() * 8);
-    notes.push(
-      new VF.StaveNote({
-        keys: [randRest == 0 ? "b/4" : key],
-        duration: randRest == 0 ? "8r" : "8",
-      })
-    );
-    counter += 2;
-
-    if (counter + 2 > length * maximumNoteSubdivision) {
-      return { counter, lastKey };
-    }
-    randRest = Math.floor(Math.random() * 8);
-    notes.push(
-      new VF.StaveNote({
-        keys: [randRest == 0 ? "b/4" : key],
-        duration: randRest == 0 ? "8r" : "8",
-      })
-    );
-    counter += 2;
+    return doSyncopation(notes, keys, difficulty, counter, measureLength, lastKey, maxJump);
   }
+
+  if (difficulty >= 4) {
+    lastKey = pushRandom8th(notes, lastKey, keys, maxJump, difficulty);
+    counter += 2;
+
+    if (counter + 2 > measureLength * maximumNoteSubdivision) {
+      return { counter, lastKey };
+    }
+
+    lastKey = pushRandom8th(notes, lastKey, keys, maxJump, difficulty);
+    counter += 2;
+    return { counter, lastKey };
+  }
+
+  if (counter + 4 > measureLength * maximumNoteSubdivision) {
+    lastKey = pushRandom8th(notes, lastKey, keys, maxJump, difficulty);
+    counter += 2;
+
+    return { counter, lastKey };
+  }
+
+  lastKey = push2Random8th(notes, lastKey, keys, maxJump, difficulty);
+  counter += 4;
+
   return { counter, lastKey };
 }
 
-function handleSixteenthNoteRuns(
-  notes,
-  keys,
-  difficulty,
-  counter,
-  maximumNoteSubdivision,
-  length,
-  lastKey,
-  maxJump
-) {
-  let keyIndex = getKeyIndex(lastKey, keys, maxJump);
-  let key = keys[keyIndex];
-  lastKey = keyIndex;
-  notes.push(new VF.StaveNote({ keys: [key], duration: "16" }));
-  counter += 1;
+function doSyncopation(notes, keys, difficulty, counter, measureLength, lastKey, maxJump) {
+  let rand = Math.floor(Math.random() * 4);
 
-  if (difficulty >= 8) {
-    let keyIndex = getKeyIndex(lastKey, keys, maxJump);
-    key = keys[keyIndex];
-    lastKey = keyIndex;
+  if (rand == 1 && difficulty >= 7) {
+    lastKey = pushRandom8th(notes, lastKey, keys, maxJump, difficulty);
+    counter += 2;
+    return { counter, lastKey };
   }
 
-  notes.push(new VF.StaveNote({ keys: [key], duration: "16" }));
-  counter += 1;
+  if (rand == 0) {
+    lastKey = pushRandom8th(notes, lastKey, keys, maxJump, difficulty);
+    counter += 2;
 
-  if (counter + 2 >= length * maximumNoteSubdivision) {
+    if (counter + 4 > measureLength * maximumNoteSubdivision) {
+      return { counter, lastKey };
+    }
+
+    lastKey = pushRandomQ(notes, lastKey, keys, maxJump, difficulty);
+    counter += 4;
+
+    if (canPush8th(counter, measureLength)) {
+      return { counter, lastKey };
+    }
+
+    lastKey = pushRandom8th(notes, lastKey, keys, maxJump, difficulty);
+    counter += 2;
+
+    return { counter, lastKey };
+  }
+
+  lastKey = pushRandom8th(notes, lastKey, keys, maxJump, difficulty);
+  counter += 2;
+
+  if (counter + 2 > measureLength * maximumNoteSubdivision) {
+    return { counter, lastKey };
+  }
+  lastKey = pushRandom8th(notes, lastKey, keys, maxJump, difficulty);
+  counter += 2;
+  return { counter, lastKey };
+}
+
+function handleSixteenthNoteRuns(notes, keys, difficulty, counter, measureLength, lastKey, maxJump) {
+  if (difficulty >= 9) {
+    lastKey = pushRandom16th(notes, lastKey, keys, maxJump, difficulty);
+    lastKey = pushRandom16th(notes, lastKey, keys, maxJump, difficulty);
+    counter += 2;
+  } else {
+    lastKey = push2Random16th(notes, lastKey, keys, maxJump, difficulty);
+    counter += 2;
+  }
+
+  if (counter + 2 >= measureLength
+     * maximumNoteSubdivision) {
     return { counter, lastKey };
   }
 
   let rand = Math.floor(Math.random() * 2);
   if (rand == 0) {
     if (difficulty >= 8) {
-      let keyIndex = getKeyIndex(lastKey, keys, maxJump);
-      key = keys[keyIndex];
-      lastKey = keyIndex;
+      lastKey = pushRandom16th(notes, lastKey, keys, maxJump, difficulty);
+      lastKey = pushRandom16th(notes, lastKey, keys, maxJump, difficulty);
+    } else {
+      lastKey = push2Random16th(notes, lastKey, keys, maxJump, difficulty);
     }
 
-    notes.push(new VF.StaveNote({ keys: [key], duration: "16" }));
-    counter += 1;
-
-    if (difficulty >= 8) {
-      let keyIndex = getKeyIndex(lastKey, keys, maxJump);
-      key = keys[keyIndex];
-      lastKey = keyIndex;
-    }
-
-    notes.push(new VF.StaveNote({ keys: [key], duration: "16" }));
-    counter += 1;
+    counter += 2;
   } else {
     if (difficulty >= 7) {
-      let keyIndex = getKeyIndex(lastKey, keys, maxJump);
-      key = keys[keyIndex];
-      lastKey = keyIndex;
+      lastKey = pushRandom8th(notes, lastKey, keys, maxJump, difficulty);
+    } else {
+      pushSame8th(notes, lastKey, difficulty);
     }
-
-    notes.push(new VF.StaveNote({ keys: [key], duration: "8" }));
     counter += 2;
   }
 
   return { counter, lastKey };
 }
 
-function drawMeasure(
-  x,
-  y,
-  notes,
-  addClef = false,
-  key = "C",
-  addTimeSig = false,
-  slurs = []
-) {
+function drawMeasure(x, y, notes, addClef = false, keySignature = "C", addTimeSig = false, slurs = []) {
   const stave = new VF.Stave(x, y, staveWidth);
-  if (addClef) stave.addClef("treble").addKeySignature(key);
+  if (addClef) stave.addClef("treble").addKeySignature(keySignature);
   if (addTimeSig) stave.addTimeSignature("4/4");
   stave.setContext(context).draw();
 
@@ -517,220 +293,4 @@ function drawMeasure(
     }
   });
   return stave;
-}
-
-function getKeys(rangeDifficulty) {
-  if (rangeDifficulty == 1) {
-    return ["c/4", "d/4", "e/4", "f/4", "g/4", "a/4", "b/4", "c/5"];
-  }
-  if (rangeDifficulty == 2) {
-    return [
-      "a/3",
-      "b/3",
-      "c/4",
-      "d/4",
-      "e/4",
-      "f/4",
-      "g/4",
-      "a/4",
-      "b/4",
-      "c/5",
-      "d/5",
-      "e/5",
-    ];
-  }
-  if (rangeDifficulty == 3) {
-    return [
-      "a/3",
-      "b/3",
-      "c/4",
-      "d/4",
-      "e/4",
-      "f/4",
-      "g/4",
-      "a/4",
-      "b/4",
-      "c/5",
-      "d/5",
-      "e/5",
-      "f/5",
-    ];
-  }
-  if (rangeDifficulty == 4) {
-    return [
-      "g/3",
-      "a/3",
-      "b/3",
-      "c/4",
-      "d/4",
-      "e/4",
-      "f/4",
-      "g/4",
-      "a/4",
-      "b/4",
-      "c/5",
-      "d/5",
-      "e/5",
-      "f/5",
-      "g/5",
-    ];
-  }
-  if (rangeDifficulty == 5) {
-    return [
-      "g/3",
-      "a/3",
-      "b/3",
-      "c/4",
-      "d/4",
-      "e/4",
-      "f/4",
-      "g/4",
-      "a/4",
-      "b/4",
-      "c/5",
-      "d/5",
-      "e/5",
-      "f/5",
-      "g/5",
-      "a/5",
-      "b/5",
-    ];
-  }
-  if (rangeDifficulty == 6) {
-    return [
-      "g/3",
-      "a/3",
-      "b/3",
-      "c/4",
-      "d/4",
-      "e/4",
-      "f/4",
-      "g/4",
-      "a/4",
-      "b/4",
-      "c/5",
-      "d/5",
-      "e/5",
-      "f/5",
-      "g/5",
-      "a/5",
-      "b/5",
-      "c/6",
-    ];
-  }
-  if (rangeDifficulty == 7) {
-    return [
-      "g/3",
-      "a/3",
-      "b/3",
-      "c/4",
-      "d/4",
-      "e/4",
-      "f/4",
-      "g/4",
-      "a/4",
-      "b/4",
-      "c/5",
-      "d/5",
-      "e/5",
-      "f/5",
-      "g/5",
-      "a/5",
-      "b/5",
-      "c/6",
-      "d/6",
-    ];
-  }
-}
-
-const sharpsByKey = {
-  C: [],
-  G: ["f"],
-  D: ["f", "c"],
-  A: ["f", "c", "g"],
-  E: ["f", "c", "g", "d"],
-  B: ["f", "c", "g", "d", "a"],
-  "F#": ["f", "c", "g", "d", "a", "e"],
-  "C#": ["f", "c", "g", "d", "a", "e", "b"],
-};
-
-function applyKeySignature(note, key) {
-  let [pitch, octave] = note.split("/");
-  pitch = pitch.toLowerCase();
-
-  const sharps = sharpsByKey[key] || [];
-
-  if (sharps.includes(pitch)) {
-    pitch += "#";
-  }
-
-  return pitch.toUpperCase() + "/" + octave;
-}
-
-function vexToMidi(note, key) {
-  const [name, octave] = applyKeySignature(note, key).split("/");
-  const base = {
-    c: 0,
-    "c#": 1,
-    db: 1,
-    d: 2,
-    "d#": 3,
-    eb: 3,
-    e: 4,
-    "e#": 4,
-    f: 5,
-    "f#": 6,
-    gb: 6,
-    g: 7,
-    "g#": 8,
-    ab: 8,
-    a: 9,
-    "a#": 10,
-    ab: 10,
-    b: 11,
-    "b#": 12,
-  };
-  return 12 * (parseInt(octave) + 1) + base[name.toLowerCase()];
-}
-
-function getDurationInSeconds(vfDuration) {
-  let durationCopy = vfDuration;
-  durationCopy = durationCopy.replace("r", "");
-  const wholeNoteLength = 3;
-  const map = {
-    w: wholeNoteLength,
-    h: wholeNoteLength / 2,
-    q: wholeNoteLength / 4,
-    8: wholeNoteLength / 8,
-    16: wholeNoteLength / 16,
-  };
-  return map[durationCopy] || 1;
-}
-
-let audioCtx;
-let trumpet;
-async function playNotes() {
-  stopNotes();
-  const keySignature = document.getElementById("keySelector").value;
-  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  trumpet = await Soundfont.instrument(audioCtx, "trumpet");
-
-  let time = audioCtx.currentTime;
-
-  for (const note of allNotes) {
-    const key = note.keys[0];
-    const duration = getDurationInSeconds(note.duration);
-    if (!note.noteType.includes("r")) {
-      const midi = vexToMidi(key, keySignature);
-      trumpet.play(midi, time, { duration });
-    }
-    time += duration;
-  }
-}
-
-function stopNotes() {
-  if (audioCtx) {
-    audioCtx.close();
-    audioCtx = null;
-  }
 }

@@ -3,13 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <title>Sightreading</title>
-    <script src="https://cdn.jsdelivr.net/npm/vexflow@4.0.1-beta.2/build/cjs/vexflow.js"></script>
-     <script src="
-https://cdn.jsdelivr.net/npm/soundfont-player@0.12.0/dist/soundfont-player.min.js
-"></script>
+    <script src="https://cdn.jsdelivr.net/npm/soundfont-player@0.12.0/dist/soundfont-player.min.js"></script>
 
-
-    <script src="app.js" defer></script>
+    <script type="module" src="./app.js"></script>
+    <script type="module" src="./audioUtils.js"></script>
     <style>
       body {
         font-family: sans-serif;
@@ -25,70 +22,56 @@ https://cdn.jsdelivr.net/npm/soundfont-player@0.12.0/dist/soundfont-player.min.j
     </style>
   </head>
   <body>
-    <label
-      >Measures: <input type="number" id="length" value="4" min="1"
-    /></label>
-    <label
-      >Difficulty (1–10):
-      <input type="number" id="difficulty" value="1" min="1" max="10"
-    /></label>
-    <label
-      >Range Difficulty (1–7):
-      <input type="number" id="rangeDifficulty" value="1" min="1" max="7"
-    /></label>
+    <label>Measures: <input type="number" id="length" value="4" min="1" /></label>
+    <label>Difficulty (1–10): <input type="number" id="difficulty" value="1" min="1" max="10" /></label>
+    <label>Range Difficulty (1–7): <input type="number" id="rangeDifficulty" value="1" min="1" max="7" /></label>
 
-    
-    <label
-      >Max Jump (in scale degrees):
-      <input type="number" id="maxJump" value="3" min="1"
-    /></label>
+    <label>Max Jump (in scale degrees): <input type="number" id="maxJump" value="3" min="1" /></label>
 
     <label
       >Key:
-    <select id="keySelector">
-    <!-- Major Keys -->
-    <option>C</option>
-    <option>G</option>
-    <option>D</option>
-    <option>A</option>
-    <option>E</option>
-    <option>B</option>
-    <option>F#</option>
-    <option>C#</option>
-    <option>F</option>
-    <option>Bb</option>
-    <option>Eb</option>
-    <option>Ab</option>
-    <option>Db</option>
-    <option>Gb</option>
-    <option>Cb</option>
+      <select id="keySelector">
+        <!-- Major Keys -->
+        <option>C</option>
+        <option>G</option>
+        <option>D</option>
+        <option>A</option>
+        <option>E</option>
+        <option>B</option>
+        <option>F#</option>
+        <option>C#</option>
+        <option>F</option>
+        <option>Bb</option>
+        <option>Eb</option>
+        <option>Ab</option>
+        <option>Db</option>
+        <option>Gb</option>
+        <option>Cb</option>
 
-    <!-- Minor Keys -->
-    <option>Am</option>
-    <option>Em</option>
-    <option>Bm</option>
-    <option>F#m</option>
-    <option>C#m</option>
-    <option>G#m</option>
-    <option>D#m</option>
-    <option>A#m</option>
-    <option>Dm</option>
-    <option>Gm</option>
-    <option>Cm</option>
-    <option>Fm</option>
-    <option>Bbm</option>
-    <option>Ebm</option>
-    <option>Abm</option>
-  </select>
-   </label>
+        <!-- Minor Keys -->
+        <option>Am</option>
+        <option>Em</option>
+        <option>Bm</option>
+        <option>F#m</option>
+        <option>C#m</option>
+        <option>G#m</option>
+        <option>D#m</option>
+        <option>A#m</option>
+        <option>Dm</option>
+        <option>Gm</option>
+        <option>Cm</option>
+        <option>Fm</option>
+        <option>Bbm</option>
+        <option>Ebm</option>
+        <option>Abm</option>
+      </select>
+    </label>
 
     <button onclick="drawNotes()">Draw</button>
     <button onclick="playNotes()">Play Audio</button>
 
     <div id="boo"></div>
 
-    <script>
-      
-    </script>
+    <script></script>
   </body>
 </html>
