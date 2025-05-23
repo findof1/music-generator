@@ -53,13 +53,15 @@ function vexToMidi(note, key) {
 function getDurationInSeconds(vfDuration) {
   let durationCopy = vfDuration;
   durationCopy = durationCopy.replace("r", "");
-  const wholeNoteLength = 3;
+  
+  const bpm = document.getElementById("bpm").value;
+  const quarterNoteLength = 60/bpm;
   const map = {
-    w: wholeNoteLength,
-    h: wholeNoteLength / 2,
-    q: wholeNoteLength / 4,
-    8: wholeNoteLength / 8,
-    16: wholeNoteLength / 16,
+    w: 4*quarterNoteLength,
+    h: 2*quarterNoteLength,
+    q: quarterNoteLength,
+    8: quarterNoteLength/2,
+    16: quarterNoteLength/4,
   };
   return map[durationCopy] || 1;
 }
@@ -69,6 +71,7 @@ let trumpet;
 export async function playNotes() {
   stopNotes();
   const keySignature = document.getElementById("keySelector").value;
+
   audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   trumpet = await Soundfont.instrument(audioCtx, "trumpet");
 
