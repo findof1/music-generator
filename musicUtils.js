@@ -8,6 +8,14 @@ export function canPush8th(counter, measureLength) {
   return counter + 2 <= measureLength * maximumNoteSubdivision;
 }
 
+export function canPushQD(counter, measureLength) {
+  return counter + 6 <= measureLength * maximumNoteSubdivision;
+}
+
+export function canPushH(counter, measureLength) {
+  return counter + 8 <= measureLength * maximumNoteSubdivision;
+}
+
 export function canPush16th(counter, measureLength) {
   return counter + 1 <= measureLength * maximumNoteSubdivision;
 }
@@ -20,6 +28,14 @@ export function pushRandomQ(notes, lastKey, keys, maxJump, difficulty) {
   return keyIndex;
 }
 
+export function pushRandomQD(notes, lastKey, keys, maxJump, difficulty) {
+  let keyIndex = getKeyIndex(lastKey, keys, maxJump);
+  let key = keys[keyIndex];
+
+  pushNote(notes, key, "qd", difficulty);
+  return keyIndex;
+}
+
 export function pushRandom8th(notes, lastKey, keys, maxJump, difficulty) {
   let keyIndex = getKeyIndex(lastKey, keys, maxJump);
   let key = keys[keyIndex];
@@ -28,14 +44,14 @@ export function pushRandom8th(notes, lastKey, keys, maxJump, difficulty) {
   return keyIndex;
 }
 
-export function pushSame8th(notes, lastKey, difficulty) {
+export function pushSame8th(notes, lastKey, keys, difficulty) {
   let key = keys[lastKey];
 
   pushNote(notes, key, "8", difficulty);
   return lastKey;
 }
 
-export function pushSame16th(notes, lastKey, difficulty) {
+export function pushSame16th(notes, lastKey, keys, difficulty) {
   let key = keys[lastKey];
 
   pushNote(notes, key, "16", difficulty);
@@ -99,9 +115,9 @@ function getRestProbability(duration, difficulty) {
     hd: 12,
     h: 6,
     q: 4,
-    qd: 12,
-    8: difficulty >= 6 ? 4 : 16,
-    16: difficulty == 9 ? 64 : difficulty == 10 ? 32 : 9999999999,
+    qd: difficulty >= 10 ? 8 : 24,
+    8: difficulty >= 10 ? 4 : 16,
+    16: difficulty >= 17 ? 16 : difficulty == 16 ? 32 : difficulty == 15 ? 64 : 9999999999,
   };
 
   return options[duration] || options["16"];
@@ -135,37 +151,154 @@ export function getNoteOptionsByDifficulty(difficulty, timeSignature) {
   let options;
   if (timeSignature == "4/4") {
     options = {
+      0: { lengths: ["16"], values: [1] },
       1: { lengths: ["w", "h"], values: [16, 8] },
       2: { lengths: ["w", "h", "q"], values: [16, 8, 4] },
       3: { lengths: ["w", "hd", "h", "q", "8"], values: [16, 12, 8, 4, 2] },
       4: { lengths: ["w", "hd", "h", "q", "8"], values: [16, 12, 8, 4, 2] },
-      5: { lengths: ["w", "hd", "h", "qd", "q", "8"], values: [16, 12, 8, 6, 4, 2] },
-      6: { lengths: ["w", "hd", "h", "qd", "q", "8", "16"], values: [16, 12, 8, 6, 4, 2, 1] },
-      7: { lengths: ["w", "hd", "h", "qd", "q", "8", "16"], values: [16, 12, 8, 6, 4, 2, 1] },
+      5: { lengths: ["w", "hd", "h", "q", "8"], values: [16, 12, 8, 4, 2] },
+      6: { lengths: ["w", "hd", "h", "q", "8"], values: [16, 12, 8, 4, 2] },
+      7: { lengths: ["w", "hd", "h", "qd", "q", "8"], values: [16, 12, 8, 6, 4, 2] },
+      8: { lengths: ["w", "hd", "h", "qd", "q", "8"], values: [16, 12, 8, 6, 4, 2] },
+      9: { lengths: ["w", "hd", "h", "qd", "q", "8"], values: [16, 12, 8, 6, 4, 2] },
+      10: { lengths: ["w", "hd", "h", "qd", "q", "8"], values: [16, 12, 8, 6, 4, 2] },
+      11: { lengths: ["w", "hd", "h", "qd", "q", "8", "16"], values: [16, 12, 8, 6, 4, 2, 1] },
+      12: { lengths: ["w", "hd", "h", "qd", "q", "8", "16"], values: [16, 12, 8, 6, 4, 2, 1] },
+      13: { lengths: ["w", "hd", "h", "qd", "q", "8", "16"], values: [16, 12, 8, 6, 4, 2, 1] },
+      14: { lengths: ["w", "hd", "h", "qd", "q", "8", "16"], values: [16, 12, 8, 6, 4, 2, 1] },
+      15: { lengths: ["w", "hd", "h", "qd", "q", "8", "16"], values: [16, 12, 8, 6, 4, 2, 1] },
+      16: { lengths: ["w", "hd", "h", "qd", "q", "8", "16"], values: [16, 12, 8, 6, 4, 2, 1] },
+      17: { lengths: ["w", "hd", "h", "qd", "q", "8", "16"], values: [16, 12, 8, 6, 4, 2, 1] },
+      18: { lengths: ["hd", "h", "qd", "q", "8", "16"], values: [12, 8, 6, 4, 2, 1] },
+      19: { lengths: ["h", "qd", "q", "8", "16"], values: [8, 6, 4, 2, 1] },
+      20: { lengths: ["qd", "q", "8", "16"], values: [6, 4, 2, 1] },
     };
   }
   if (timeSignature == "3/4") {
     options = {
+      0: { lengths: ["16"], values: [1] },
       1: { lengths: ["hd"], values: [12] },
       2: { lengths: ["hd", "h", "q"], values: [12, 8, 4] },
       3: { lengths: ["hd", "h", "q", "8"], values: [12, 8, 4, 2] },
       4: { lengths: ["hd", "h", "q", "8"], values: [12, 8, 4, 2] },
-      5: { lengths: ["hd", "h", "qd", "q", "8"], values: [12, 8, 6, 4, 2] },
-      6: { lengths: ["hd", "h", "qd", "q", "8", "16"], values: [12, 8, 6, 4, 2, 1] },
-      7: { lengths: ["hd", "h", "qd", "q", "8", "16"], values: [12, 8, 6, 4, 2, 1] },
+      5: { lengths: ["hd", "h", "q", "8"], values: [12, 8, 4, 2] },
+      6: { lengths: ["hd", "h", "q", "8"], values: [12, 8, 4, 2] },
+      7: { lengths: ["hd", "h", "qd", "q", "8"], values: [12, 8, 6, 4, 2] },
+      8: { lengths: ["hd", "h", "qd", "q", "8"], values: [12, 8, 6, 4, 2] },
+      9: { lengths: ["hd", "h", "qd", "q", "8"], values: [12, 8, 6, 4, 2] },
+      10: { lengths: ["hd", "h", "qd", "q", "8"], values: [12, 8, 6, 4, 2] },
+      11: { lengths: ["hd", "h", "qd", "q", "8", "16"], values: [12, 8, 6, 4, 2, 1] },
+      12: { lengths: ["hd", "h", "qd", "q", "8", "16"], values: [12, 8, 6, 4, 2, 1] },
+      13: { lengths: ["hd", "h", "qd", "q", "8", "16"], values: [12, 8, 6, 4, 2, 1] },
+      14: { lengths: ["hd", "h", "qd", "q", "8", "16"], values: [12, 8, 6, 4, 2, 1] },
+      15: { lengths: ["hd", "h", "qd", "q", "8", "16"], values: [12, 8, 6, 4, 2, 1] },
+      16: { lengths: ["hd", "h", "qd", "q", "8", "16"], values: [12, 8, 6, 4, 2, 1] },
+      17: { lengths: ["hd", "h", "qd", "q", "8", "16"], values: [12, 8, 6, 4, 2, 1] },
+      18: { lengths: ["h", "qd", "q", "8", "16"], values: [8, 6, 4, 2, 1] },
+      19: { lengths: ["h", "qd", "q", "8", "16"], values: [8, 6, 4, 2, 1] },
+      20: { lengths: ["qd", "q", "8", "16"], values: [6, 4, 2, 1] },
     };
   }
   if (timeSignature == "2/4") {
     options = {
+      0: { lengths: ["16"], values: [1] },
       1: { lengths: ["h"], values: [8] },
       2: { lengths: ["h", "q"], values: [8, 4] },
       3: { lengths: ["h", "q", "8"], values: [8, 4, 2] },
       4: { lengths: ["h", "q", "8"], values: [8, 4, 2] },
-      5: { lengths: ["h", "qd", "q", "8"], values: [8, 6, 4, 2] },
-      6: { lengths: ["h", "qd", "q", "8", "16"], values: [8, 6, 4, 2, 1] },
-      7: { lengths: ["h", "qd", "q", "8", "16"], values: [8, 6, 4, 2, 1] },
+      5: { lengths: ["h", "q", "8"], values: [8, 4, 2] },
+      6: { lengths: ["h", "q", "8"], values: [8, 4, 2] },
+      7: { lengths: ["h", "qd", "q", "8"], values: [8, 6, 4, 2] },
+      8: { lengths: ["h", "qd", "q", "8"], values: [8, 6, 4, 2] },
+      9: { lengths: ["h", "qd", "q", "8"], values: [8, 6, 4, 2] },
+      10: { lengths: ["h", "qd", "q", "8"], values: [8, 6, 4, 2] },
+      11: { lengths: ["h", "qd", "q", "8", "16"], values: [8, 6, 4, 2, 1] },
+      12: { lengths: ["h", "qd", "q", "8", "16"], values: [8, 6, 4, 2, 1] },
+      13: { lengths: ["h", "qd", "q", "8", "16"], values: [8, 6, 4, 2, 1] },
+      14: { lengths: ["h", "qd", "q", "8", "16"], values: [8, 6, 4, 2, 1] },
+      15: { lengths: ["h", "qd", "q", "8", "16"], values: [8, 6, 4, 2, 1] },
+      16: { lengths: ["h", "qd", "q", "8", "16"], values: [8, 6, 4, 2, 1] },
+      17: { lengths: ["h", "qd", "q", "8", "16"], values: [8, 6, 4, 2, 1] },
+      18: { lengths: ["qd", "q", "8", "16"], values: [6, 4, 2, 1] },
+      19: { lengths: ["qd", "q", "8", "16"], values: [6, 4, 2, 1] },
+      20: { lengths: ["qd", "q", "8", "16"], values: [6, 4, 2, 1] },
+    };
+  }
+  if (timeSignature == "6/8") {
+    options = {
+      0: { lengths: ["16"], values: [1] },
+      1: { lengths: ["hd"], values: [12] },
+      2: { lengths: ["hd", "qd"], values: [12, 6] },
+      3: { lengths: ["hd", "qd", "8"], values: [12, 6, 2] },
+      4: { lengths: ["hd", "qd", "8"], values: [12, 6, 2] },
+      5: { lengths: ["hd", "qd", "8"], values: [12, 6, 2] },
+      6: { lengths: ["hd", "qd", "8"], values: [12, 6, 2] },
+      7: { lengths: ["hd", "qd", "q", "8"], values: [12, 6, 4, 2] },
+      8: { lengths: ["hd", "qd", "q", "8"], values: [12, 6, 4, 2] },
+      9: { lengths: ["hd", "qd", "q", "8"], values: [12, 6, 4, 2] },
+      10: { lengths: ["hd", "qd", "q", "8"], values: [12, 6, 4, 2] },
+      11: { lengths: ["hd", "qd", "q", "8", "16"], values: [12, 6, 4, 2, 1] },
+      12: { lengths: ["hd", "qd", "q", "8", "16"], values: [12, 6, 4, 2, 1] },
+      13: { lengths: ["hd", "qd", "q", "8", "16"], values: [12, 6, 4, 2, 1] },
+      14: { lengths: ["hd", "qd", "q", "8", "16"], values: [12, 6, 4, 2, 1] },
+      15: { lengths: ["hd", "qd", "q", "8", "16"], values: [12, 6, 4, 2, 1] },
+      16: { lengths: ["hd", "qd", "q", "8", "16"], values: [12, 6, 4, 2, 1] },
+      17: { lengths: ["hd", "qd", "q", "8", "16"], values: [12, 6, 4, 2, 1] },
+      18: { lengths: ["hd", "qd", "q", "8", "16"], values: [12, 6, 4, 2, 1] },
+      19: { lengths: ["hd", "qd", "q", "8", "16"], values: [12, 6, 4, 2, 1] },
+      20: { lengths: ["hd", "qd", "q", "8", "16"], values: [12, 6, 4, 2, 1] },
+    };
+  }
+  if (timeSignature == "3/8") {
+    options = {
+      0: { lengths: ["16"], values: [1] },
+      1: { lengths: ["qd"], values: [6] },
+      2: { lengths: ["qd"], values: [6] },
+      3: { lengths: ["qd", "8"], values: [6, 2] },
+      4: { lengths: ["qd", "8"], values: [6, 2] },
+      5: { lengths: ["qd", "8"], values: [6, 2] },
+      6: { lengths: ["qd", "8"], values: [6, 2] },
+      7: { lengths: ["qd", "q", "8"], values: [6, 4, 2] },
+      8: { lengths: ["qd", "q", "8"], values: [6, 4, 2] },
+      9: { lengths: ["qd", "q", "8"], values: [6, 4, 2] },
+      10: { lengths: ["qd", "q", "8"], values: [6, 4, 2] },
+      11: { lengths: ["qd", "q", "8", "16"], values: [6, 4, 2, 1] },
+      12: { lengths: ["qd", "q", "8", "16"], values: [6, 4, 2, 1] },
+      13: { lengths: ["qd", "q", "8", "16"], values: [6, 4, 2, 1] },
+      14: { lengths: ["qd", "q", "8", "16"], values: [6, 4, 2, 1] },
+      15: { lengths: ["qd", "q", "8", "16"], values: [6, 4, 2, 1] },
+      16: { lengths: ["qd", "q", "8", "16"], values: [6, 4, 2, 1] },
+      17: { lengths: ["qd", "q", "8", "16"], values: [6, 4, 2, 1] },
+      18: { lengths: ["qd", "q", "8", "16"], values: [6, 4, 2, 1] },
+      19: { lengths: ["qd", "q", "8", "16"], values: [6, 4, 2, 1] },
+      20: { lengths: ["qd", "q", "8", "16"], values: [6, 4, 2, 1] },
+    };
+  }
+  if (timeSignature == "12/8") {
+    options = {
+      0: { lengths: ["16"], values: [1] },
+      1: { lengths: ["wd", "hd"], values: [24, 12] },
+      2: { lengths: ["wd", "hd", "qd"], values: [24, 12, 6] },
+      3: { lengths: ["wd", "hd", "qd", "8"], values: [24, 12, 6, 2] },
+      4: { lengths: ["wd", "hd", "qd", "8"], values: [24, 12, 6, 2] },
+      5: { lengths: ["wd", "hd", "qd", "8"], values: [24, 12, 6, 2] },
+      6: { lengths: ["wd", "hd", "qd", "8"], values: [24, 12, 6, 2] },
+      7: { lengths: ["wd", "hd", "qd", "q", "8"], values: [24, 12, 6, 4, 2] },
+      8: { lengths: ["wd", "hd", "qd", "q", "8"], values: [24, 12, 6, 4, 2] },
+      9: { lengths: ["wd", "hd", "qd", "q", "8"], values: [24, 12, 6, 4, 2] },
+      10: { lengths: ["wd", "hd", "qd", "q", "8"], values: [24, 12, 6, 4, 2] },
+      11: { lengths: ["wd", "hd", "qd", "q", "8", "16"], values: [24, 12, 6, 4, 2, 1] },
+      12: { lengths: ["wd", "hd", "qd", "q", "8", "16"], values: [24, 12, 6, 4, 2, 1] },
+      13: { lengths: ["wd", "hd", "qd", "q", "8", "16"], values: [24, 12, 6, 4, 2, 1] },
+      14: { lengths: ["wd", "hd", "qd", "q", "8", "16"], values: [24, 12, 6, 4, 2, 1] },
+      15: { lengths: ["wd", "hd", "qd", "q", "8", "16"], values: [24, 12, 6, 4, 2, 1] },
+      16: { lengths: ["wd", "hd", "qd", "q", "8", "16"], values: [24, 12, 6, 4, 2, 1] },
+      17: { lengths: ["wd", "hd", "qd", "q", "8", "16"], values: [24, 12, 6, 4, 2, 1] },
+      18: { lengths: ["wd", "hd", "qd", "q", "8", "16"], values: [24, 12, 6, 4, 2, 1] },
+      19: { lengths: ["wd", "hd", "qd", "q", "8", "16"], values: [24, 12, 6, 4, 2, 1] },
+      20: { lengths: ["wd", "hd", "qd", "q", "8", "16"], values: [24, 12, 6, 4, 2, 1] },
     };
   }
 
-  return options[difficulty] || options[7]; // fallback to hardest
+  return options[difficulty] || options[20]; // fallback to hardest
 }

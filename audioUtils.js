@@ -53,15 +53,15 @@ function vexToMidi(note, key) {
 function getDurationInSeconds(vfDuration) {
   let durationCopy = vfDuration;
   durationCopy = durationCopy.replace("r", "");
-  
+
   const bpm = document.getElementById("bpm").value;
-  const quarterNoteLength = 60/bpm;
+  const quarterNoteLength = 60 / bpm;
   const map = {
-    w: 4*quarterNoteLength,
-    h: 2*quarterNoteLength,
+    w: 4 * quarterNoteLength,
+    h: 2 * quarterNoteLength,
     q: quarterNoteLength,
-    8: quarterNoteLength/2,
-    16: quarterNoteLength/4,
+    8: quarterNoteLength / 2,
+    16: quarterNoteLength / 4,
   };
   return map[durationCopy] || 1;
 }
@@ -79,7 +79,13 @@ export async function playNotes() {
 
   for (const note of allNotes) {
     const key = note.keys[0];
-    const duration = getDurationInSeconds(note.duration);
+    
+    let duration = getDurationInSeconds(note.duration);
+    
+    if(note.modifierContext.members.Dot != undefined){
+      duration*=1.5;
+    }
+
     if (!note.noteType.includes("r")) {
       const midi = vexToMidi(key, keySignature);
       trumpet.play(midi, time, { duration });

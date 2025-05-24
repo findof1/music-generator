@@ -1,0 +1,23 @@
+New patterns on different difficulties
+
+0: Secret(ish) only 16th notes mode
+1: None
+2: None
+3: Straight Eighth Notes
+4: Differing Eighth Notes By Only One Scale Degree
+5: Differing Eighth Notes
+6: Syncopation Eighth Notes
+7: Introduce Dotted Quarter (all come in pairs of Dotted Quarter + Eighth of same note)
+8: Differ note for pairs of Dotted Quarter + Eighth
+9: 2 Dotted Quarters In A Row
+10: Makes Dotted Quarter and Eighth Note Rests More Abundant  
+11: 16th notes where they are all the same note Ex: (AAAA)
+12: 16th notes where they are paired together as the same note Ex: (AABB)
+13: 16th notes and Eighth note where they are same note Ex: (AA A or A AA)
+14: 16th notes and Eighth note Ex: (AA B or B AA)
+15: Allow 16th rests, but fairly uncommon (1/64 chance to replace 16th note)
+16: 16th rests are twice as common (1/32 chance to replace 16th note)
+17: 16th rests are twice as common (1/16 chance to replace 16th note)
+18: No more whole notes
+19: No more dotted half notes
+20: No more half notes

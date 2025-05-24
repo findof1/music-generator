@@ -23,10 +23,10 @@
   </head>
   <body>
     <label>Measures: <input type="number" id="length" value="4" min="1" /></label>
-    <label>Difficulty (1–10): <input type="number" id="difficulty" value="1" min="1" max="10" /></label>
+    <label>Difficulty (1–20): <input type="number" id="difficulty" value="1" min="0" max="20" /></label>
     <label>Range Difficulty (1–7): <input type="number" id="rangeDifficulty" value="1" min="1" max="7" /></label>
 
-    <label>Max Jump (in scale degrees): <input type="number" id="maxJump" value="3" min="1" /></label>
+    <label>Max Jump (in scale degrees): <input type="number" id="maxJump" value="3" min="0" /></label>
     <br>
     <br>
     <label
@@ -35,6 +35,9 @@
         <option>4/4</option>
         <option>3/4</option>
         <option>2/4</option>
+        <option>6/8</option>
+        <option>3/8</option>
+        <option>12/8</option>
       </select>
     </label>
 

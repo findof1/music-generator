@@ -1,11 +1,8 @@
 import Vex from "https://esm.sh/vexflow@4.0.1-beta.2";
-import {
-  getKeys,
-  getNoteOptionsByDifficulty,
-  pushNote
-} from "./musicUtils.js";
+import { getKeys, getNoteOptionsByDifficulty, pushNote } from "./musicUtils.js";
 import { handle8thNotePatterns } from "./eighthNotePatterns.js";
 import { handleSixteenthNoteRuns } from "./sixteenthNotePatterns.js";
+import { handleQDNotePatterns } from "./qdNotePatterns.js";
 import { stopNotes } from "./audioUtils.js";
 
 export const VF = Vex.Flow;
@@ -14,7 +11,7 @@ const pageWidth = 1700;
 const staveWidth = 350;
 const margin = 10;
 const lineSpacing = 120;
-export const maximumNoteSubdivision = 4; //16th notes
+export let maximumNoteSubdivision; //amount of 16th notes in one beat
 export let allNotes = [];
 
 let renderer;
@@ -35,14 +32,27 @@ function getUserInputs() {
   const rangeDifficulty = parseInt(document.getElementById("rangeDifficulty").value);
   const maxJump = parseInt(document.getElementById("maxJump").value);
   let beatsPerMeasure = -1;
-  if(timeSignature == "4/4"){
+  maximumNoteSubdivision = 4;
+  if (timeSignature == "4/4") {
     beatsPerMeasure = 4;
   }
-  if(timeSignature == "3/4"){
+  if (timeSignature == "3/4") {
     beatsPerMeasure = 3;
   }
-  if(timeSignature == "2/4"){
+  if (timeSignature == "2/4") {
     beatsPerMeasure = 2;
+  }
+  if (timeSignature == "6/8") {
+    beatsPerMeasure = 2;
+    maximumNoteSubdivision = 6;
+  }
+  if (timeSignature == "3/8") {
+    beatsPerMeasure = 1;
+    maximumNoteSubdivision = 6;
+  }
+  if (timeSignature == "12/8") {
+    beatsPerMeasure = 4;
+    maximumNoteSubdivision = 6;
   }
 
   return {
@@ -52,7 +62,7 @@ function getUserInputs() {
     rangeDifficulty,
     maxJump,
     timeSignature,
-    beatsPerMeasure
+    beatsPerMeasure,
   };
 }
 
@@ -77,7 +87,6 @@ export function drawNotes() {
     lastKey = retVal.lastKey;
 
     firstStave = false;
-
 
     x += staveWidth;
 
@@ -105,11 +114,12 @@ function generateMeasure(x, y, difficulty, measureLength, keys, firstMeasure, sh
 
     if (noteValue > remaining) {
       const pick = pickSmallerNoteLengthValue(availableNoteLengths, availableNoteValues, remaining);
+      if(!pick) break;
       noteLength = pick.length;
       noteValue = pick.value;
     }
 
-    if (noteValue == 1) {
+    if (noteValue == 1 && difficulty != 0) {
       let retVal = handleSixteenthNoteRuns(notes, keys, difficulty, counter, measureLength, lastKey, maxJump);
       counter = retVal.counter;
       lastKey = retVal.lastKey;
@@ -123,12 +133,20 @@ function generateMeasure(x, y, difficulty, measureLength, keys, firstMeasure, sh
       continue;
     }
 
+    if (noteValue == 6) {
+      let retVal = handleQDNotePatterns(notes, keys, difficulty, counter, measureLength, lastKey, maxJump);
+      counter = retVal.counter;
+      lastKey = retVal.lastKey;
+      continue;
+    }
+
     let keyIndex = getKeyIndex(lastKey, keys, maxJump);
     let key = keys[keyIndex];
     lastKey = keyIndex;
     pushNote(notes, key, noteLength, difficulty);
     counter += noteValue;
   }
+  console.log(notes);
   let stave = drawMeasure(x, y, notes, timeSignature, firstMeasure, keySignature, showTime, []);
   return { stave, lastKey };
 }
@@ -147,14 +165,7 @@ function drawMeasure(x, y, notes, timeSignature = "4/4", addClef = false, keySig
   if (addTimeSig) stave.addTimeSignature(timeSignature);
   stave.setContext(context).draw();
 
-  let voice;
-  if(timeSignature == "4/4"){
-  voice = new VF.Voice({ num_beats: 4, beat_value: 4 });
-  }else if(timeSignature == "3/4"){
-  voice = new VF.Voice({ num_beats: 3, beat_value: 4 });
-  }else if(timeSignature == "2/4"){
-  voice = new VF.Voice({ num_beats: 2, beat_value: 4 });
-  }
+  let voice = getVoice(timeSignature);
   voice.addTickables(notes);
 
   allNotes.push(...notes);
@@ -165,12 +176,33 @@ function drawMeasure(x, y, notes, timeSignature = "4/4", addClef = false, keySig
   voice.draw(context, stave);
 
   beams.forEach((beam) => beam.setContext(context).draw());
-  
+
   drawSlurs(slurs);
   return stave;
 }
 
-function drawSlurs(slurs){
+function getVoice(timeSignature) {
+  if (timeSignature == "4/4") {
+    return new VF.Voice({ num_beats: 4, beat_value: 4 });
+  }
+  if (timeSignature == "3/4") {
+    return new VF.Voice({ num_beats: 3, beat_value: 4 });
+  }
+  if (timeSignature == "2/4") {
+    return new VF.Voice({ num_beats: 2, beat_value: 4 });
+  }
+  if (timeSignature == "6/8") {
+    return new VF.Voice({ num_beats: 6, beat_value: 8 });
+  }
+  if (timeSignature == "3/8") {
+    return new VF.Voice({ num_beats: 3, beat_value: 8 });
+  }
+  if (timeSignature == "12/8") {
+    return new VF.Voice({ num_beats: 12, beat_value: 8 });
+  }
+}
+
+function drawSlurs(slurs) {
   slurs.forEach((slur) => {
     if (slur.type === "tie") {
       new VF.StaveTie({
