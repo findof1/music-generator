@@ -114,7 +114,7 @@ function generateMeasure(x, y, difficulty, measureLength, keys, firstMeasure, sh
 
     if (noteValue > remaining) {
       const pick = pickSmallerNoteLengthValue(availableNoteLengths, availableNoteValues, remaining);
-      if(!pick) break;
+      if (!pick) break;
       noteLength = pick.length;
       noteValue = pick.value;
     }
@@ -165,8 +165,11 @@ function drawMeasure(x, y, notes, timeSignature = "4/4", addClef = false, keySig
   if (addTimeSig) stave.addTimeSignature(timeSignature);
   stave.setContext(context).draw();
 
+  let randDynamics = Math.floor(Math.random() * 8);
   let voice = getVoice(timeSignature);
   voice.addTickables(notes);
+
+  drawDynamicsText(randDynamics, notes);
 
   allNotes.push(...notes);
 
@@ -178,6 +181,9 @@ function drawMeasure(x, y, notes, timeSignature = "4/4", addClef = false, keySig
   beams.forEach((beam) => beam.setContext(context).draw());
 
   drawSlurs(slurs);
+
+  drawDynamics(randDynamics, notes);
+
   return stave;
 }
 
@@ -199,6 +205,45 @@ function getVoice(timeSignature) {
   }
   if (timeSignature == "12/8") {
     return new VF.Voice({ num_beats: 12, beat_value: 8 });
+  }
+}
+
+function drawDynamicsText(rand, notes) {
+  let randDynamicsValue = Math.floor(Math.random() * 6);
+
+  const options = ["pp", "p", "mp", "mf", "f", "ff"];
+
+  if (rand == 3) {
+    const ann = new VF.Annotation(options[randDynamicsValue]).setFont({ family: "Bravura Text", size: 15, weight: "bold" }).setVerticalJustification(VF.Annotation.VerticalJustify.BOTTOM);
+
+    notes[0].addModifier(ann, 0);
+  }
+}
+
+function drawDynamics(rand, notes) {
+  if (notes.length == 1) {
+    return;
+  }
+
+  if (rand == 0) {
+    const hairpin = new VF.StaveHairpin(
+      {
+        first_note: notes[0],
+        last_note: notes[notes.length - 1],
+      },
+      VF.StaveHairpin.type.CRESC
+    );
+    hairpin.setContext(context).setRenderOptions({ height: 10, left_shift_px: -10, right_shift_px: 300 }).draw();
+  }
+  if (rand == 1) {
+    const hairpin = new VF.StaveHairpin(
+      {
+        first_note: notes[0],
+        last_note: notes[notes.length - 1],
+      },
+      VF.StaveHairpin.type.DECRESC
+    );
+    hairpin.setContext(context).setRenderOptions({ height: 10, left_shift_px: -10, right_shift_px: 300 }).draw();
   }
 }
 
