@@ -1,5 +1,5 @@
 import Vex from "https://esm.sh/vexflow@4.0.1-beta.2";
-import { getKeys, getNoteOptionsByDifficulty, pushNote } from "./musicUtils.js";
+import { getKeys, getNoteOptionsByDifficulty, pushNote, durationTo16ths } from "./musicUtils.js";
 import { handle8thNotePatterns } from "./eighthNotePatterns.js";
 import { handleSixteenthNoteRuns } from "./sixteenthNotePatterns.js";
 import { handleQDNotePatterns } from "./qdNotePatterns.js";
@@ -7,8 +7,9 @@ import { stopNotes } from "./audioUtils.js";
 
 export const VF = Vex.Flow;
 const container = document.getElementById("boo");
-const pageWidth = 1700;
-const staveWidth = 350;
+const pageWidth = 1450;
+const ogStaveWidth = 360;
+let staveWidth = 360;
 const margin = 10;
 const lineSpacing = 120;
 export let maximumNoteSubdivision; //amount of 16th notes in one beat
@@ -66,6 +67,11 @@ function getUserInputs() {
   };
 }
 
+function isEighthTime(timeSpec) {
+  const parts = timeSpec.split("/"); 
+  return parts.length === 2 && parts[1] === "8";
+}
+
 export function drawNotes() {
   stopNotes();
 
@@ -80,20 +86,26 @@ export function drawNotes() {
   let x = margin;
   let y = 40;
   let firstStave = true;
+  staveWidth = ogStaveWidth;
+  staveWidth += 150;
 
   for (let i = 0; i < measrues; i++) {
     let retVal = generateMeasure(x, y, difficulty, beatsPerMeasure, keys, firstStave, prevStave == null, keySignature, maxJump, lastKey, timeSignature);
     prevStave = retVal.stave;
     lastKey = retVal.lastKey;
 
-    firstStave = false;
 
     x += staveWidth;
+    if(firstStave){
+      staveWidth -= 150;
+    }
+    firstStave = false;
 
     if (x + staveWidth > pageWidth) {
       x = margin;
       y += lineSpacing;
       firstStave = true;
+      staveWidth += 150;
     }
   }
 }
@@ -133,7 +145,7 @@ function generateMeasure(x, y, difficulty, measureLength, keys, firstMeasure, sh
       continue;
     }
 
-    if (noteValue == 6) {
+    if (noteValue == 6 && !isEighthTime(timeSignature)) {
       let retVal = handleQDNotePatterns(notes, keys, difficulty, counter, measureLength, lastKey, maxJump);
       counter = retVal.counter;
       lastKey = retVal.lastKey;
@@ -146,7 +158,6 @@ function generateMeasure(x, y, difficulty, measureLength, keys, firstMeasure, sh
     pushNote(notes, key, noteLength, difficulty);
     counter += noteValue;
   }
-  console.log(notes);
   let stave = drawMeasure(x, y, notes, timeSignature, firstMeasure, keySignature, showTime, []);
   return { stave, lastKey };
 }
@@ -170,6 +181,8 @@ function drawMeasure(x, y, notes, timeSignature = "4/4", addClef = false, keySig
   voice.addTickables(notes);
 
   drawDynamicsText(randDynamics, notes);
+
+  drawArticulation(notes);
 
   allNotes.push(...notes);
 
@@ -206,6 +219,32 @@ function getVoice(timeSignature) {
   if (timeSignature == "12/8") {
     return new VF.Voice({ num_beats: 12, beat_value: 8 });
   }
+}
+
+function drawArticulation(notes) {
+  let counter = 0;
+  for (let i = 0; i < notes.length; i++) {
+
+    if(counter % 4 != 0 || notes[i].getNoteType() == "r"){
+      counter+=durationTo16ths(notes[i].duration) * (hasDot(notes[i]) ? 1.5 : 1);
+      continue;
+    }
+    counter+=durationTo16ths(notes[i].duration) * (hasDot(notes[i]) ? 1.5 : 1);
+
+    let rand = Math.floor(Math.random() * 8);
+    if (rand == 0) {
+      const staccato = new VF.Articulation("a.").setPosition(VF.Modifier.Position.BELOW);
+      notes[i].addModifier(staccato, 0);
+    }
+    if (rand == 1) {
+      const accent = new VF.Articulation("a>").setPosition(VF.Modifier.Position.BELOW);
+      notes[i].addModifier(accent, 0);
+    }
+  }
+}
+
+function hasDot(note){
+  return note.modifiers[0] && note.modifiers[0].attrs.type == "Dot"
 }
 
 function drawDynamicsText(rand, notes) {
@@ -250,22 +289,9 @@ function drawDynamics(rand, notes) {
 function drawSlurs(slurs) {
   slurs.forEach((slur) => {
     if (slur.type === "tie") {
-      new VF.StaveTie({
-        from: slur.from,
-        to: slur.to,
-        text: slur.text || "",
-      })
-        .setContext(context)
-        .draw();
+      new VF.StaveTie({ from: notes[slur.from], to: notes[slur.to] }).setContext(context).draw();
     } else if (slur.type === "curve") {
-      new VF.Curve(slur.from, slur.to, {
-        cps: slur.cps || [
-          { x: 0, y: 20 },
-          { x: 0, y: 20 },
-        ],
-      })
-        .setContext(context)
-        .draw();
+      new VF.Curve(notes[slur.from], notes[slur.to]).setContext(context).draw();
     }
   });
 }

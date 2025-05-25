@@ -7,6 +7,7 @@
 
     <script type="module" src="./app.js"></script>
     <script type="module" src="./audioUtils.js"></script>
+    <script type="module" src="./download.js"></script>
     <style>
       body {
         font-family: sans-serif;
@@ -84,6 +85,8 @@
     
     <label>BPM: <input type="number" id="bpm" value="80" min="1" max="500" /></label>
     <button onclick="playNotes()">Play Audio</button>
+    
+    <button onclick="downloadSVG()">Download as SVG</button>
 
     <div id="boo"></div>
 

@@ -123,6 +123,21 @@ function getRestProbability(duration, difficulty) {
   return options[duration] || options["16"];
 }
 
+export function durationTo16ths(duration) {
+  let durationCopy = duration.replace("r", "");
+  const options = {
+    w: 16,
+    hd: 12,
+    h: 8,
+    qd: 6,
+    q: 4,
+    8: 2,
+    16: 1
+  };
+
+  return options[durationCopy];
+}
+
 export function getKeys(rangeDifficulty) {
   if (rangeDifficulty == 1) {
     return ["c/4", "d/4", "e/4", "f/4", "g/4", "a/4", "b/4", "c/5"];
