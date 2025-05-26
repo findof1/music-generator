@@ -15,9 +15,9 @@ New patterns on different difficulties
 12: 16th notes where they are paired together as the same note Ex: (AABB)
 13: 16th notes and Eighth note where they are same note Ex: (AA A or A AA)
 14: 16th notes and Eighth note Ex: (AA B or B AA)
-15: Allow 16th rests, but fairly uncommon (1/64 chance to replace 16th note)
-16: 16th rests are twice as common (1/32 chance to replace 16th note)
-17: 16th rests are twice as common (1/16 chance to replace 16th note)
+15: Allow 16th rests, but very uncommon (1/256 chance to replace 16th note)
+16: 16th rests are twice as common (1/128 chance to replace 16th note)
+17: 16th rests are twice as common (1/64 chance to replace 16th note)
 18: No more whole notes
 19: No more dotted half notes
 20: No more half notes

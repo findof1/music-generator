@@ -2,7 +2,7 @@ import { pushRandom8th, pushRandom16th, push2Random16th, pushSame8th, canPush8th
 
 export function handleSixteenthNoteRuns(notes, keys, difficulty, counter, measureLength, lastKey, maxJump) {
    if (difficulty >= 14) {
-    let rand = Math.floor(Math.random() * 3);
+    let rand = Math.floor(Math.random() * 8);
     if (rand == 0) {
       return doSame16thDiff8th(notes, keys, difficulty, counter, measureLength, lastKey, maxJump);
     } else {
@@ -11,7 +11,7 @@ export function handleSixteenthNoteRuns(notes, keys, difficulty, counter, measur
   }
 
   if (difficulty == 13) {
-    let rand = Math.floor(Math.random() * 3);
+    let rand = Math.floor(Math.random() * 8);
     if (rand == 0) {
       return doSame16thSame8th(notes, keys, difficulty, counter, measureLength, lastKey, maxJump);
     } else {

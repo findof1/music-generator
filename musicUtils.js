@@ -117,7 +117,7 @@ function getRestProbability(duration, difficulty) {
     q: 4,
     qd: difficulty >= 10 ? 8 : 24,
     8: difficulty >= 10 ? 4 : 16,
-    16: difficulty >= 17 ? 16 : difficulty == 16 ? 32 : difficulty == 15 ? 64 : 9999999999,
+    16: difficulty >= 17 ? 64 : difficulty == 16 ? 128 : difficulty == 15 ? 256 : 9999999999,
   };
 
   return options[duration] || options["16"];

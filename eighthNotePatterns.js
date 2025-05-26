@@ -2,7 +2,7 @@ import { pushRandomQ, pushRandom8th, push2Random8th, canPushQ, canPush8th, pushR
 
 export function handle8thNotePatterns(notes, keys, difficulty, counter, measureLength, lastKey, maxJump) {
   if (difficulty >= 14) {
-    let rand = Math.floor(Math.random() * 3);
+    let rand = Math.floor(Math.random() * 8);
 
     if (rand == 0) {
       lastKey = pushRandom8th(notes, lastKey, keys, maxJump, difficulty);
@@ -22,7 +22,7 @@ export function handle8thNotePatterns(notes, keys, difficulty, counter, measureL
   }
 
   if (difficulty == 13) {
-    let rand = Math.floor(Math.random() * 3);
+    let rand = Math.floor(Math.random() * 8);
 
     if (rand == 0) {
       lastKey = pushRandom8th(notes, lastKey, keys, maxJump, difficulty);
@@ -42,7 +42,7 @@ export function handle8thNotePatterns(notes, keys, difficulty, counter, measureL
   }
 
   if (difficulty >= 7) {
-    let rand = Math.floor(Math.random() * 8);
+    let rand = Math.floor(Math.random() * 16);
 
     if (rand == 0 && canPushH(counter, measureLength)) {
    
@@ -93,15 +93,9 @@ function do2Diff8thNotes(notes, keys, difficulty, counter, measureLength, lastKe
 }
 
 function allowSyncopation(notes, keys, difficulty, counter, measureLength, lastKey, maxJump) {
-  let rand = Math.floor(Math.random() * 4);
+  let rand = Math.floor(Math.random() * 16);
 
-  if (rand == 1 && difficulty >= 18) {
-    lastKey = pushRandom8th(notes, lastKey, keys, maxJump, difficulty);
-    counter += 2;
-    return { counter, lastKey };
-  }
-
-  if (rand == 1 && difficulty >= 18) {
+  if (rand == 1 && difficulty >= 19) {
     lastKey = pushRandom8th(notes, lastKey, keys, maxJump, difficulty);
     counter += 2;
     return { counter, lastKey };

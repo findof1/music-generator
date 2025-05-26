@@ -3,7 +3,7 @@ import { pushRandomQD,pushRandom8th,  canPush8th, canPushH, canPushQD, pushSame8
 export function handleQDNotePatterns(notes, keys, difficulty, counter, measureLength, lastKey, maxJump) {
 
   if (difficulty >= 9) {
-    let rand = Math.floor(Math.random() * 2);
+    let rand = Math.floor(Math.random() * 16);
 
     if(rand == 0)
       return do2QD(notes, keys, difficulty, counter, measureLength, lastKey, maxJump);

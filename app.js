@@ -14,6 +14,7 @@ const margin = 10;
 const lineSpacing = 120;
 export let maximumNoteSubdivision; //amount of 16th notes in one beat
 export let allNotes = [];
+let motifData;
 
 let renderer;
 let context;
@@ -68,7 +69,7 @@ function getUserInputs() {
 }
 
 function isEighthTime(timeSpec) {
-  const parts = timeSpec.split("/"); 
+  const parts = timeSpec.split("/");
   return parts.length === 2 && parts[1] === "8";
 }
 
@@ -89,14 +90,24 @@ export function drawNotes() {
   staveWidth = ogStaveWidth;
   staveWidth += 150;
 
+  motifData = generateMeasure( difficulty, beatsPerMeasure, keys, maxJump, lastKey,timeSignature);
+
   for (let i = 0; i < measrues; i++) {
-    let retVal = generateMeasure(x, y, difficulty, beatsPerMeasure, keys, firstStave, prevStave == null, keySignature, maxJump, lastKey, timeSignature);
-    prevStave = retVal.stave;
+    let randMotif = Math.floor(Math.random() * 4);
+    if(randMotif == 0){
+    lastKey = motifData.lastKey;
+
+    prevStave = drawMeasure(x, y, motifData.notes, timeSignature, firstStave, keySignature, prevStave == null, []);
+
+    }else{
+    let retVal = generateMeasure(difficulty, beatsPerMeasure, keys, maxJump, lastKey, timeSignature);
     lastKey = retVal.lastKey;
 
-
+    prevStave = drawMeasure(x, y, retVal.notes, timeSignature, firstStave, keySignature, prevStave == null, []);
+    }
+    
     x += staveWidth;
-    if(firstStave){
+    if (firstStave) {
       staveWidth -= 150;
     }
     firstStave = false;
@@ -111,7 +122,7 @@ export function drawNotes() {
 }
 window.drawNotes = drawNotes;
 
-function generateMeasure(x, y, difficulty, measureLength, keys, firstMeasure, showTime, keySignature, maxJump, lastKey, timeSignature) {
+function generateMeasure(difficulty, measureLength, keys,  maxJump, lastKey, timeSignature) {
   const notes = [];
   const { lengths: availableNoteLengths, values: availableNoteValues } = getNoteOptionsByDifficulty(difficulty, timeSignature);
 
@@ -120,9 +131,17 @@ function generateMeasure(x, y, difficulty, measureLength, keys, firstMeasure, sh
     const remaining = measureLength * maximumNoteSubdivision - counter;
     if (remaining <= 0) break;
 
-    const randIndex = Math.floor(Math.random() * availableNoteLengths.length);
+    let randIndex = Math.floor(Math.random() * availableNoteLengths.length);
     let noteLength = availableNoteLengths[randIndex];
     let noteValue = availableNoteValues[randIndex];
+    if (noteValue == 6) {
+      let rand = Math.floor(Math.random() * 2);
+      if (rand == 0) {
+        randIndex = Math.floor(Math.random() * availableNoteLengths.length);
+        noteLength = availableNoteLengths[randIndex];
+        noteValue = availableNoteValues[randIndex];
+      }
+    }
 
     if (noteValue > remaining) {
       const pick = pickSmallerNoteLengthValue(availableNoteLengths, availableNoteValues, remaining);
@@ -158,15 +177,26 @@ function generateMeasure(x, y, difficulty, measureLength, keys, firstMeasure, sh
     pushNote(notes, key, noteLength, difficulty);
     counter += noteValue;
   }
-  let stave = drawMeasure(x, y, notes, timeSignature, firstMeasure, keySignature, showTime, []);
-  return { stave, lastKey };
+  return { notes, lastKey };
 }
 
+let allowLeaps = true;
+let leapCounter = 0;
+let leapsInARow = Math.floor(Math.random() * 5) + 1;
 export function getKeyIndex(lastKey, keys, maxJump) {
   let keyIndex = Math.floor(Math.random() * keys.length);
-  while (lastKey != -1 && Math.abs(keyIndex - lastKey) > maxJump) {
+  while (lastKey != -1 && Math.abs(keyIndex - lastKey) > (allowLeaps? maxJump : 1)) {
     keyIndex = Math.floor(Math.random() * keys.length);
   }
+  if(leapCounter > leapsInARow){
+    allowLeaps = !allowLeaps;
+    if(allowLeaps){
+      leapsInARow = Math.floor(Math.random() * 5) + 3;
+    }else{
+      leapsInARow = Math.floor(Math.random() * 10) + 6;
+    }
+  }
+  leapCounter++;
   return keyIndex;
 }
 
@@ -224,12 +254,11 @@ function getVoice(timeSignature) {
 function drawArticulation(notes) {
   let counter = 0;
   for (let i = 0; i < notes.length; i++) {
-
-    if(counter % 4 != 0 || notes[i].getNoteType() == "r"){
-      counter+=durationTo16ths(notes[i].duration) * (hasDot(notes[i]) ? 1.5 : 1);
+    if (counter % 4 != 0 || notes[i].getNoteType() == "r") {
+      counter += durationTo16ths(notes[i].duration) * (hasDot(notes[i]) ? 1.5 : 1);
       continue;
     }
-    counter+=durationTo16ths(notes[i].duration) * (hasDot(notes[i]) ? 1.5 : 1);
+    counter += durationTo16ths(notes[i].duration) * (hasDot(notes[i]) ? 1.5 : 1);
 
     let rand = Math.floor(Math.random() * 8);
     if (rand == 0) {
@@ -243,8 +272,8 @@ function drawArticulation(notes) {
   }
 }
 
-function hasDot(note){
-  return note.modifiers[0] && note.modifiers[0].attrs.type == "Dot"
+function hasDot(note) {
+  return note.modifiers[0] && note.modifiers[0].attrs.type == "Dot";
 }
 
 function drawDynamicsText(rand, notes) {
