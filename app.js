@@ -30,7 +30,7 @@ function initVF() {
 function getUserInputs() {
   let keySignature = document.getElementById("keySelector").value;
   let timeSignature = document.getElementById("timeSelector").value;
-  const measrues = parseInt(document.getElementById("length").value);
+  const measures = parseInt(document.getElementById("length").value);
   const difficulty = parseInt(document.getElementById("difficulty").value);
   const rangeDifficulty = parseInt(document.getElementById("rangeDifficulty").value);
   const maxJump = parseInt(document.getElementById("maxJump").value);
@@ -60,7 +60,7 @@ function getUserInputs() {
 
   return {
     keySignature,
-    measrues,
+    measures,
     difficulty,
     rangeDifficulty,
     maxJump,
@@ -81,7 +81,7 @@ export function drawNotes() {
   container.innerHTML = "";
   initVF();
 
-  let { keySignature, measrues, difficulty, rangeDifficulty, maxJump, timeSignature, beatsPerMeasure } = getUserInputs();
+  let { keySignature, measures, difficulty, rangeDifficulty, maxJump, timeSignature, beatsPerMeasure } = getUserInputs();
   let lastKey = -1;
   let keys = getKeys(rangeDifficulty);
   let prevStave = null;
@@ -91,16 +91,20 @@ export function drawNotes() {
   staveWidth = ogStaveWidth;
   staveWidth += 150;
 
-  motifData[0] = generateMeasure(difficulty, beatsPerMeasure, keys, maxJump, lastKey, timeSignature);
-  motifData[1] = alterMeasure(motifData[0].notes, keys);
-  motifData[2] = alterMeasure(motifData[1].notes, keys);
-  motifData[3] = alterMeasure(motifData[2].notes, keys);
-  motifData[4] = alterMeasure(motifData[3].notes, keys);
-  motifData[5] = alterMeasure(motifData[4].notes, keys);
+  for(let i = 0; i < Math.min(Math.floor(measures / 40), 4) + 1; i++){
+    let index = i * 6;
+    motifData[index] = generateMeasure(difficulty, beatsPerMeasure, keys, maxJump, lastKey, timeSignature);
+    motifData[index+1] = alterMeasure(motifData[index].notes, keys);
+    motifData[index+2] = alterMeasure(motifData[index+1].notes, keys);
+    motifData[index+3] = alterMeasure(motifData[index+2].notes, keys);
+    motifData[index+4] = alterMeasure(motifData[index+3].notes, keys);
+    motifData[index+5] = alterMeasure(motifData[index+4].notes, keys);
+  }
 
-  for (let i = 0; i < measrues; i++) {
+  for (let i = 0; i < measures; i++) {
     let randMotif = Math.floor(Math.random() * 4);
     if (randMotif == 0) {
+      
       let randSelection = Math.floor(Math.random() * motifData.length);
       lastKey = motifData[randSelection].lastKey;
 

@@ -319,7 +319,6 @@ export function getNoteOptionsByDifficulty(difficulty, timeSignature) {
 }
 
 export function copyNote(originalNote) {
-  console.log(originalNote)
   const keys = originalNote.getKeys();
   const baseDuration = originalNote.getDuration();
   const stemDirection = originalNote.getStemDirection(); 
