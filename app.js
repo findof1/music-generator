@@ -1,9 +1,10 @@
 import Vex from "https://esm.sh/vexflow@4.0.1-beta.2";
-import { getKeys, getNoteOptionsByDifficulty, pushNote, durationTo16ths } from "./musicUtils.js";
+import { getKeys, getNoteOptionsByDifficulty, pushNote, durationTo16ths, copyNote } from "./musicUtils.js";
 import { handle8thNotePatterns } from "./eighthNotePatterns.js";
 import { handleSixteenthNoteRuns } from "./sixteenthNotePatterns.js";
 import { handleQDNotePatterns } from "./qdNotePatterns.js";
 import { stopNotes } from "./audioUtils.js";
+import {alterMeasure} from "./motifHandler.js"
 
 export const VF = Vex.Flow;
 const container = document.getElementById("boo");
@@ -12,9 +13,9 @@ const ogStaveWidth = 360;
 let staveWidth = 360;
 const margin = 10;
 const lineSpacing = 120;
-export let maximumNoteSubdivision; //amount of 16th notes in one beat
+export let maximumNoteSubdivision; //amount of 16th notes in one beat (Ex: 4/4 is 4; 6/8 is 6)
 export let allNotes = [];
-let motifData;
+let motifData = [];
 
 let renderer;
 let context;
@@ -90,22 +91,23 @@ export function drawNotes() {
   staveWidth = ogStaveWidth;
   staveWidth += 150;
 
-  motifData = generateMeasure( difficulty, beatsPerMeasure, keys, maxJump, lastKey,timeSignature);
+  motifData[0] = generateMeasure(difficulty, beatsPerMeasure, keys, maxJump, lastKey, timeSignature);
+  motifData[1] = alterMeasure(motifData[0].notes, keys);
 
   for (let i = 0; i < measrues; i++) {
     let randMotif = Math.floor(Math.random() * 4);
-    if(randMotif == 0){
-    lastKey = motifData.lastKey;
+    if (randMotif == 0) {
+      let randSelection = Math.floor(Math.random() * motifData.length);
+      lastKey = motifData[randSelection].lastKey;
 
-    prevStave = drawMeasure(x, y, motifData.notes, timeSignature, firstStave, keySignature, prevStave == null, []);
+      prevStave = drawMeasure(x, y, motifData[randSelection].notes, timeSignature, firstStave, keySignature, prevStave == null, []);
+    } else {
+      let retVal = generateMeasure(difficulty, beatsPerMeasure, keys, maxJump, lastKey, timeSignature);
+      lastKey = retVal.lastKey;
 
-    }else{
-    let retVal = generateMeasure(difficulty, beatsPerMeasure, keys, maxJump, lastKey, timeSignature);
-    lastKey = retVal.lastKey;
-
-    prevStave = drawMeasure(x, y, retVal.notes, timeSignature, firstStave, keySignature, prevStave == null, []);
+      prevStave = drawMeasure(x, y, retVal.notes, timeSignature, firstStave, keySignature, prevStave == null, []);
     }
-    
+
     x += staveWidth;
     if (firstStave) {
       staveWidth -= 150;
@@ -122,7 +124,7 @@ export function drawNotes() {
 }
 window.drawNotes = drawNotes;
 
-function generateMeasure(difficulty, measureLength, keys,  maxJump, lastKey, timeSignature) {
+function generateMeasure(difficulty, measureLength, keys, maxJump, lastKey, timeSignature) {
   const notes = [];
   const { lengths: availableNoteLengths, values: availableNoteValues } = getNoteOptionsByDifficulty(difficulty, timeSignature);
 
@@ -185,14 +187,14 @@ let leapCounter = 0;
 let leapsInARow = Math.floor(Math.random() * 5) + 1;
 export function getKeyIndex(lastKey, keys, maxJump) {
   let keyIndex = Math.floor(Math.random() * keys.length);
-  while (lastKey != -1 && Math.abs(keyIndex - lastKey) > (allowLeaps? maxJump : 1)) {
+  while (lastKey != -1 && Math.abs(keyIndex - lastKey) > (allowLeaps ? maxJump : 1)) {
     keyIndex = Math.floor(Math.random() * keys.length);
   }
-  if(leapCounter > leapsInARow){
+  if (leapCounter > leapsInARow) {
     allowLeaps = !allowLeaps;
-    if(allowLeaps){
+    if (allowLeaps) {
       leapsInARow = Math.floor(Math.random() * 5) + 3;
-    }else{
+    } else {
       leapsInARow = Math.floor(Math.random() * 10) + 6;
     }
   }
@@ -200,7 +202,8 @@ export function getKeyIndex(lastKey, keys, maxJump) {
   return keyIndex;
 }
 
-function drawMeasure(x, y, notes, timeSignature = "4/4", addClef = false, keySignature = "C", addTimeSig = false, slurs = []) {
+function drawMeasure(x, y, ogNotes, timeSignature = "4/4", addClef = false, keySignature = "C", addTimeSig = false, slurs = []) {
+  const notes = ogNotes.map(copyNote);
   const stave = new VF.Stave(x, y, staveWidth);
   if (addClef) stave.addClef("treble").addKeySignature(keySignature);
   if (addTimeSig) stave.addTimeSignature(timeSignature);
@@ -209,6 +212,7 @@ function drawMeasure(x, y, notes, timeSignature = "4/4", addClef = false, keySig
   let randDynamics = Math.floor(Math.random() * 8);
   let voice = getVoice(timeSignature);
   voice.addTickables(notes);
+
 
   drawDynamicsText(randDynamics, notes);
 
@@ -282,6 +286,7 @@ function drawDynamicsText(rand, notes) {
   const options = ["pp", "p", "mp", "mf", "f", "ff"];
 
   if (rand == 3) {
+
     const ann = new VF.Annotation(options[randDynamicsValue]).setFont({ family: "Bravura Text", size: 15, weight: "bold" }).setVerticalJustification(VF.Annotation.VerticalJustify.BOTTOM);
 
     notes[0].addModifier(ann, 0);

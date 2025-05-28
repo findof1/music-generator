@@ -317,3 +317,83 @@ export function getNoteOptionsByDifficulty(difficulty, timeSignature) {
 
   return options[difficulty] || options[20]; // fallback to hardest
 }
+
+export function copyNote(originalNote) {
+  const keys = originalNote.getKeys();
+  const duration = originalNote.getDuration();
+  const stemDirection = originalNote.getStemDirection(); 
+  
+  const hasDot = originalNote.modifiers[0] && originalNote.modifiers[0].attrs.type == "Dot";
+  const newNote = new VF.StaveNote({
+    keys: [...keys], 
+    duration: duration,
+    stem_direction: stemDirection,
+    dots: hasDot ? 1 : 0
+  });  
+
+  if(hasDot){
+    VF.Dot.buildAndAttach([newNote], { all: true });
+  }
+
+  originalNote.modifiers
+    .filter(m => m.getCategory() === 'accidentals')
+    .forEach(acc => {
+      const index = acc.getIndex();
+      const type = acc.type;
+      newNote.addAccidental(index, new VF.Accidental(type));
+    });
+
+  originalNote.modifiers
+    .filter(m => m.getCategory() === 'articulations')
+    .forEach(art => {
+      const index = art.getIndex();
+      const type = art.type;
+      newNote.addArticulation(index, new VF.Articulation(type));
+    });
+
+    originalNote.modifiers
+    .filter(mod => mod.getCategory() === 'dots')
+    .forEach(dot => {
+      newNote.addDot(dot.getIndex());
+    });
+
+  return newNote;
+}
+
+export function copyNoteNewKey(originalNote, key) {
+
+  const duration = originalNote.getDuration(); 
+  const stemDirection = originalNote.getStemDirection(); 
+  
+  const hasDot = originalNote.modifiers[0] && originalNote.modifiers[0].attrs.type == "Dot";
+  const newNote = new VF.StaveNote({
+    keys: [...key], 
+    duration: duration,
+    stem_direction: stemDirection,
+    dots: hasDot ? 1 : 0
+  });
+  
+  if(hasDot){
+    VF.Dot.buildAndAttach([newNote], { all: true });
+  }
+
+  originalNote.modifiers
+    .filter(m => m.getCategory() === 'accidentals')
+    .forEach(acc => {
+      const index = acc.getIndex();
+      const type = acc.type;
+      newNote.addAccidental(index, new VF.Accidental(type));
+    });
+
+  originalNote.modifiers
+    .filter(m => m.getCategory() === 'articulations')
+    .forEach(art => {
+      const index = art.getIndex();
+      const type = art.type;
+      newNote.addArticulation(index, new VF.Articulation(type));
+    });
+
+
+
+  return newNote;
+}
