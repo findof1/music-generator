@@ -93,6 +93,10 @@ export function drawNotes() {
 
   motifData[0] = generateMeasure(difficulty, beatsPerMeasure, keys, maxJump, lastKey, timeSignature);
   motifData[1] = alterMeasure(motifData[0].notes, keys);
+  motifData[2] = alterMeasure(motifData[1].notes, keys);
+  motifData[3] = alterMeasure(motifData[2].notes, keys);
+  motifData[4] = alterMeasure(motifData[3].notes, keys);
+  motifData[5] = alterMeasure(motifData[4].notes, keys);
 
   for (let i = 0; i < measrues; i++) {
     let randMotif = Math.floor(Math.random() * 4);

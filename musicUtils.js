@@ -319,16 +319,20 @@ export function getNoteOptionsByDifficulty(difficulty, timeSignature) {
 }
 
 export function copyNote(originalNote) {
+  console.log(originalNote)
   const keys = originalNote.getKeys();
-  const duration = originalNote.getDuration();
+  const baseDuration = originalNote.getDuration();
   const stemDirection = originalNote.getStemDirection(); 
+  const isRest = originalNote.isRest();
+
+  const duration = isRest ? `${baseDuration}r` : baseDuration;
   
   const hasDot = originalNote.modifiers[0] && originalNote.modifiers[0].attrs.type == "Dot";
   const newNote = new VF.StaveNote({
     keys: [...keys], 
     duration: duration,
     stem_direction: stemDirection,
-    dots: hasDot ? 1 : 0
+    dots: hasDot ? 1 : 0,
   });  
 
   if(hasDot){
